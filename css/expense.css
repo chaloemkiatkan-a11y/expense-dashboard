@@ -1127,9 +1127,22 @@ tr:hover td {
 }
 
 .sidebar-footer {
-  margin-top: auto !important;
+  margin-top: 20px !important;
   padding: 18px 14px 24px 14px !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }
+
+.sidebar {
+  justify-content: flex-start !important;
+}
+
+.nav-links {
+  flex: none !important;
+}
+
+.sidebar-footer {
+  flex: none !important;
+}
+
 
