@@ -386,7 +386,8 @@ document.addEventListener("DOMContentLoaded", () => {
             activeCharts["overviewChart1"] = chart1;
         }
 
-        const stats = calculateStats("all");
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+const stats = calculateStats("all");
         const donutOptions = {
             chart: {
                 type: 'donut',
