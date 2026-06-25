@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeamFlow & Interactive Expense Dashboard</title>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/expense.css">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- ApexCharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        /* CSS Integration Tweaks */
+        body {
+            display: flex;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .main-content {
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
+            flex-grow: 1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        /* Custom scrollbar for sidebar and main */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.4);
+        }
+        /* Override tasks css wrapper so it fits as a tab pane */
+        #tasksPane {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        /* Resolve styling overrides */
+        .card-glass {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .btn-move {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" style="display: flex; width: 100vw; height: 100vh; overflow: hidden;">
+        
+        <!-- ============================================== -->
+        <!-- SIDEBAR NAVIGATION NAVIGATION -->
+        <!-- ============================================== -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="logo-text">CPF Cost & Tasks</div>
+            </div>
+            
+            <!-- SECTION 1: TASK MANAGEMENT -->
+            <div class="menu-label">การติดตามงาน (Tasks)</div>
+            <ul class="nav-links">
+                <li>
+                    <a class="nav-item" data-tab="tasks">
+                        <i class="fas fa-list-check"></i>
+                        <span>ติดตามงานของทีม (Tasks)</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- SECTION 2: EXPENSES MANAGEMENT -->
+            <div class="menu-label">แดชบอร์ดค่าใช้จ่าย</div>
+            <ul class="nav-links">
+                <li>
+                    <a class="nav-item active" data-tab="overview">
+                        <i class="fas fa-grid-horizontal"></i>
+                        <span>ภาพรวม (Overview)</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="menu-label">รายโรงงาน (Factories)</div>
+            <ul class="nav-links">
+                <li>
+                    <a class="nav-item" data-tab="rd center">
+                        <i class="fas fa-microscope"></i>
+                        <span>RD Center</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" data-tab="pilot">
+                        <i class="fas fa-flask"></i>
+                        <span>โรงงาน Pilot</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" data-tab="โรงงานผลิตซอส">
+                        <i class="fas fa-mortar-pestle"></i>
+                        <span>โรงงานผลิตซอส</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" data-tab="ksp">
+                        <i class="fas fa-industry"></i>
+                        <span>โรงงาน KSP</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="menu-label">เงินทดรองจ่าย</div>
+            <ul class="nav-links">
+                <li>
+                    <a class="nav-item" data-tab="advances">
+                        <i class="fas fa-hand-holding-dollar"></i>
+                        <span>เงินยืมทดรองจ่าย</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Sidebar Footer with Theme Toggle -->
+            <div class="sidebar-footer">
+                <div class="theme-toggle-container">
+                    <span class="theme-toggle-text">โหมดมืด (Dark Mode)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="themeSwitch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ============================================== -->
+        <!-- MAIN CONTENT AREA -->
+        <!-- ============================================== -->
+        <main class="main-content">
+            
+            <!-- Global Unified Header -->
+            <header class="main-header">
+                <div class="header-title">
+                    <h1>Interactive Expense Dashboard</h1>
+                    <p>สรุปภาพรวมค่าใช้จ่ายทุกโรงงาน ประจำปี 2569 (ม.ค. - พ.ค.)</p>
+                </div>
+                
+                <div class="header-actions">
+                    <!-- Date badge (Visible on Expense Tabs) -->
+                    <div id="header-date-badge" class="date-badge">
+                        <i class="far fa-calendar-alt"></i> ปีงบประมาณ 2569
+                    </div>
+                    
+                    <!-- Role Switcher & Theme button (Visible on Tasks Tab) -->
+                    <div id="header-role-selector" class="controls" style="display: none; align-items: center; gap: 12px;">
+                        <div class="role-selector-wrapper" style="margin: 0; padding: 6px 16px;">
+                            <span class="role-selector-label" style="font-size: 0.8rem; color: var(--text-muted);">บทบาท:</span>
+                            <select id="roleSelect" class="role-select" style="font-size: 0.85rem;">
+                                <option value="supervisor">👤 หัวหน้างาน (Supervisor)</option>
+                            </select>
+                        </div>
+                        <button id="themeBtn" class="theme-btn" style="display: none;"></button> 
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dynamic Notification Banner (Overdue tasks) -->
+            <div id="notificationArea" style="display: none;"></div>
+
+            <!-- Tab Panes Content Container -->
+            <div class="tab-panes">
+                
+                <!-- ============================================== -->
+                <!-- TAB PANE: TASKS BOARD -->
+                <!-- ============================================== -->
+                <div id="tasksPane" class="tab-pane" style="display: none;">
+                    
+                    <div id="viewSupervisor" class="dashboard-grid">
+                        
+                        <!-- Left Panel: Create Task & Team Workload -->
+                        <div class="sidebar-panel">
+                            
+                            <!-- Create Task Form -->
+                            <div class="card-glass panel-section">
+                                <h2 class="panel-title">✏️ มอบหมายงานใหม่</h2>
+                                <form id="formCreateTask">
+                                    <div class="form-group">
+                                        <label for="inputTitle">ชื่องาน *</label>
+                                        <input type="text" id="inputTitle" class="form-control" placeholder="ระบุชื่องานที่ต้องการมอบหมาย" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputDesc">รายละเอียดงาน</label>
+                                        <textarea id="inputDesc" class="form-control" placeholder="รายละเอียดเนื้อหางานโดยย่อ..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputDeadline">วันกำหนดส่ง (Deadline) *</label>
+                                        <input type="date" id="inputDeadline" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="selectAssignee">ผู้รับผิดชอบ *</label>
+                                        <select id="selectAssignee" class="form-control" required>
+                                            <option value="" disabled selected>เลือกผู้รับผิดชอบ...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="selectPriority">ความสำคัญ</label>
+                                        <select id="selectPriority" class="form-control">
+                                            <option value="low">ปกติ (Low)</option>
+                                            <option value="medium" selected>ด่วน (Medium)</option>
+                                            <option value="high">ด่วนที่สุด (High)</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn-submit">➕ มอบหมายงาน</button>
+                                </form>
+                            </div>
+
+                            <!-- Team Workload Stats & Add Member -->
+                            <div class="card-glass panel-section">
+                                <div class="panel-title">
+                                    <h2>👥 รายชื่อทีมงาน</h2>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label for="inputNewMember">เพิ่มทีมงานใหม่</label>
+                                    <div class="flex-input-group">
+                                        <input type="text" id="inputNewMember" class="form-control" placeholder="ระบุชื่อพนักงาน...">
+                                        <button type="button" id="btnAddMember" class="btn-icon-add" title="เพิ่มรายชื่อ">+</button>
+                                    </div>
+                                </div>
+                                <div id="teamWorkloadList"></div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Overall Stats & Global List -->
+                        <div class="main-panel">
+                            
+                            <!-- Stats Row -->
+                            <div class="stats-row">
+                                <div class="card-glass stat-widget">
+                                    <div class="stat-icon bg-indigo">📝</div>
+                                    <div class="stat-data">
+                                        <h3 id="statTotal">0</h3>
+                                        <p>งานทั้งหมด</p>
+                                    </div>
+                                </div>
+                                <div class="card-glass stat-widget">
+                                    <div class="stat-icon bg-emerald">✅</div>
+                                    <div class="stat-data">
+                                        <h3 id="statCompleted">0</h3>
+                                        <p>ทำเสร็จแล้ว</p>
+                                    </div>
+                                </div>
+                                <div class="card-glass stat-widget">
+                                    <div class="stat-icon bg-amber">⏳</div>
+                                    <div class="stat-data">
+                                        <h3 id="statPending">0</h3>
+                                        <p>กำลังดำเนินการ</p>
+                                    </div>
+                                </div>
+                                <div class="card-glass stat-widget">
+                                    <div class="stat-icon bg-rose">⚠️</div>
+                                    <div class="stat-data">
+                                        <h3 id="statOverdue">0</h3>
+                                        <p>เลยกำหนดส่ง</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Directory (All Tasks Table) -->
+                            <div class="card-glass directory-panel">
+                                <h2 class="panel-title" style="border: none; margin-bottom: 8px;">📂 ตารางงานของทุกคนในทีม</h2>
+                                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">สามารถค้นหา กรองข้อมูล และแก้ไขงานของทีมงานทุกคนได้ที่นี่</p>
+                                <div class="directory-filters">
+                                    <select id="filterAssignee" class="form-control filter-select">
+                                        <option value="all">ทุกคนในทีม</option>
+                                    </select>
+                                    <select id="filterStatus" class="form-control filter-select">
+                                        <option value="all">ทุกสถานะ</option>
+                                        <option value="todo">งานใหม่ (To Do)</option>
+                                        <option value="in_progress">กำลังทำ (In Progress)</option>
+                                        <option value="review">รอตรวจ (Review)</option>
+                                        <option value="done">เสร็จแล้ว (Done)</option>
+                                    </select>
+                                    <input type="text" id="inputSearch" class="form-control" placeholder="🔍 ค้นหางาน ผู้รับผิดชอบ หรือคำหลัก..." style="flex: 1; min-width: 200px;">
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="task-table">
+                                        <thead>
+                                            <tr>
+                                                <th>หัวข้องาน</th>
+                                                <th>ผู้รับผิดชอบ</th>
+                                                <th>กำหนดส่ง</th>
+                                                <th>ความสำคัญ</th>
+                                                <th>สถานะ</th>
+                                                <th>จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="taskTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View member Kanban board -->
+                    <div id="viewMember" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+                            <h2 id="memberBoardTitle" style="font-weight: 700;">บอร์ดงานของสมาชิก</h2>
+                            <p style="color: var(--text-muted); font-size: 0.85rem;">ลากการ์ดงานเพื่อเปลี่ยนสถานะ หรือคลิกปุ่ม ✏️ เพื่อดูรายละเอียด</p>
+                        </div>
+                        <div class="kanban-board">
+                            <div class="kanban-column todo-col">
+                                <div class="column-header">
+                                    <div class="column-title"><span style="color: var(--primary);">●</span> งานใหม่ (To Do)</div>
+                                    <span id="count-todo" class="column-count">0</span>
+                                </div>
+                                <div id="cards-todo" class="kanban-cards-area" data-status="todo"></div>
+                                <button class="btn-add-column" onclick="openAddModalFromColumn('todo')">＋ เพิ่มงานใหม่</button>
+                            </div>
+                            <div class="kanban-column in_progress-col">
+                                <div class="column-header">
+                                    <div class="column-title"><span style="color: var(--warning);">●</span> กำลังทำ (In Progress)</div>
+                                    <span id="count-in_progress" class="column-count">0</span>
+                                </div>
+                                <div id="cards-in_progress" class="kanban-cards-area" data-status="in_progress"></div>
+                                <button class="btn-add-column" onclick="openAddModalFromColumn('in_progress')">＋ เพิ่มงานใหม่</button>
+                            </div>
+                            <div class="kanban-column review-col">
+                                <div class="column-header">
+                                    <div class="column-title"><span style="color: #8b5cf6;">●</span> รอตรวจ (Review)</div>
+                                    <span id="count-review" class="column-count">0</span>
+                                </div>
+                                <div id="cards-review" class="kanban-cards-area" data-status="review"></div>
+                                <button class="btn-add-column" onclick="openAddModalFromColumn('review')">＋ เพิ่มงานใหม่</button>
+                            </div>
+                            <div class="kanban-column done-col">
+                                <div class="column-header">
+                                    <div class="column-title"><span style="color: var(--success);">●</span> เสร็จแล้ว (Done)</div>
+                                    <span id="count-done" class="column-count">0</span>
+                                </div>
+                                <div id="cards-done" class="kanban-cards-area" data-status="done"></div>
+                                <button class="btn-add-column" onclick="openAddModalFromColumn('done')">＋ เพิ่มงานใหม่</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================== -->
+                <!-- TAB PANE: EXPENSES OVERVIEW -->
+                <!-- ============================================== -->
+                <div id="overviewPane" class="tab-pane active">
+                    <!-- KPI Cards -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card kpi-blue">
+                            <div class="kpi-icon"><i class="fas fa-wallet"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">ค่าใช้จ่ายทั้งหมดสะสม</span>
+                                <span class="kpi-value" id="totalCostValO">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-green">
+                            <div class="kpi-icon"><i class="fas fa-file-contract"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">คงที่ตามสัญญา (Fixed)</span>
+                                <span class="kpi-value" id="fixedCostValO">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-purple">
+                            <div class="kpi-icon"><i class="fas fa-chart-line-down"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">แปรผันตามการใช้งาน</span>
+                                <span class="kpi-value" id="variableCostValO">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-orange">
+                            <div class="kpi-icon"><i class="fas fa-hand-holding-dollar"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">เงินยืมทดรองจ่ายรวม</span>
+                                <span class="kpi-value" id="advanceValO">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-blue">
+                            <div class="kpi-icon"><i class="fas fa-list-ol"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">จำนวนรายการรวม</span>
+                                <span class="kpi-value" id="itemCountValO">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-red">
+                            <div class="kpi-icon"><i class="fas fa-arrow-up-right-dots"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">ค่าใช้จ่ายสูงสุด</span>
+                                <span class="kpi-value" id="highestCostValO" style="font-size: 1.1rem; line-height: 1.2; margin-top: 5px;">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title"><i class="fas fa-chart-bar text-blue"></i> เปรียบเทียบค่าใช้จ่ายสะสมรายโรงงาน (ม.ค. - พ.ค.)</span>
+                            </div>
+                            <div class="chart-container" id="overviewChart1"></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title"><i class="fas fa-chart-pie text-green"></i> สัดส่วนประเภทค่าใช้จ่ายทั้งหมด</span>
+                            </div>
+                            <div class="chart-container" id="overviewChart2"></div>
+                        </div>
+                    </div>
+
+                    <!-- New Charts Grid -->
+                    <div class="charts-grid" style="margin-top: 1.5rem;">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title"><i class="fas fa-chart-line text-purple"></i> แนวโน้ม 5 อันดับค่าใช้จ่ายสูงสุด (ม.ค. - พ.ค.)</span>
+                            </div>
+                            <div class="chart-container" id="overviewTrendChart"></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title"><i class="fas fa-trophy text-orange"></i> 10 อันดับค่าใช้จ่ายสูงสุด</span>
+                            </div>
+                            <div class="chart-container" id="overviewTop10Chart"></div>
+                        </div>
+                    </div>
+
+                    <!-- MoM Jumpers Alert -->
+                    <div id="overviewMomAlerts" style="margin-top: 1.5rem; margin-bottom: 1.5rem;"></div>
+
+                    <!-- Consolidated Factory Table -->
+                    <div>
+                        <div class="table-controls">
+                            <span class="text-bold"><i class="fas fa-list"></i> ตารางสรุปค่าใช้จ่ายแยกรายโรงงาน</span>
+                            <button class="btn btn-primary" onclick="exportToCSV()">
+                                <i class="fas fa-file-csv"></i> ส่งออกเป็น CSV
+                            </button>
+                        </div>
+                        <div class="table-card">
+                            <div class="table-wrapper">
+                                <table id="overviewTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="width: 80px;">ลำดับ</th>
+                                            <th>ชื่อหน่วยงาน / โรงงาน</th>
+                                            <th class="text-right">ค่าใช้จ่ายรวมสะสม (บาท)</th>
+                                            <th class="text-right">คงที่ตามสัญญา (บาท)</th>
+                                            <th class="text-right">แปรผันตามการใช้งาน (บาท)</th>
+                                            <th class="text-right">อื่นๆ / IO (บาท)</th>
+                                            <th class="text-right">เงินยืมทดรองจ่าย (บาท)</th>
+                                            <th class="text-center" style="width: 150px;">การจัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================== -->
+                <!-- TAB PANE: SHARED FACTORY DETAILS -->
+                <!-- ============================================== -->
+                <div id="factoryPane" class="tab-pane" style="display: none;">
+                    <!-- KPI Cards -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card kpi-blue">
+                            <div class="kpi-icon"><i class="fas fa-wallet"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">ค่าใช้จ่ายสะสมโรงงาน</span>
+                                <span class="kpi-value" id="totalCostValF">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-green">
+                            <div class="kpi-icon"><i class="fas fa-file-contract"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">คงที่ตามสัญญา (Fixed)</span>
+                                <span class="kpi-value" id="fixedCostValF">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-purple">
+                            <div class="kpi-icon"><i class="fas fa-chart-line-down"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">แปรผันตามการใช้งาน</span>
+                                <span class="kpi-value" id="variableCostValF">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-orange">
+                            <div class="kpi-icon"><i class="fas fa-hand-holding-dollar"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">เงินยืมทดรองจ่ายโรงงาน</span>
+                                <span class="kpi-value" id="advanceValF">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-blue">
+                            <div class="kpi-icon"><i class="fas fa-list-ol"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">จำนวนรายการรวม</span>
+                                <span class="kpi-value" id="itemCountValF">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-red">
+                            <div class="kpi-icon"><i class="fas fa-arrow-up-right-dots"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">ค่าใช้จ่ายสูงสุด</span>
+                                <span class="kpi-value" id="highestCostValF" style="font-size: 1.1rem; line-height: 1.2; margin-top: 5px;">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title"><i class="fas fa-chart-area text-blue"></i> แนวโน้มการใช้จ่ายรายเดือน (ม.ค. - พ.ค.)</span>
+                            </div>
+                            <div class="chart-container" id="factoryChart1"></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title"><i class="fas fa-chart-pie text-green"></i> สัดส่วนประเภทค่าใช้จ่าย</span>
+                            </div>
+                            <div class="chart-container" id="factoryChart2"></div>
+                        </div>
+                    </div>
+
+                    <!-- New Charts Grid -->
+                    <div class="charts-grid" style="margin-top: 1.5rem;">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title"><i class="fas fa-chart-line text-purple"></i> แนวโน้ม 5 อันดับค่าใช้จ่ายสูงสุด (ม.ค. - พ.ค.)</span>
+                            </div>
+                            <div class="chart-container" id="factoryTrendChart"></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title"><i class="fas fa-trophy text-orange"></i> 10 อันดับค่าใช้จ่ายสูงสุด</span>
+                            </div>
+                            <div class="chart-container" id="factoryTop10Chart"></div>
+                        </div>
+                    </div>
+
+                    <!-- MoM Jumpers Alert -->
+                    <div id="factoryMomAlerts" style="margin-top: 1.5rem; margin-bottom: 1.5rem;"></div>
+
+                    <!-- Detailed Data Table -->
+                    <div>
+                        <div class="table-controls">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="tableSearch" placeholder="ค้นหาค่าใช้จ่าย หรือประเภท...">
+                            </div>
+                            <div class="filter-actions">
+                                <button class="btn btn-primary" onclick="exportToCSV()">
+                                    <i class="fas fa-file-csv"></i> ส่งออกเป็น CSV
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-card">
+                            <div class="table-wrapper">
+                                <table id="factoryMainTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" data-sort="No" onclick="handleSort('No')" style="width: 80px;">ลำดับ</th>
+                                            <th data-sort="Item" onclick="handleSort('Item')">รายการค่าใช้จ่าย</th>
+                                            <th data-sort="Type" onclick="handleSort('Type')" style="width: 200px;">ประเภทค่าใช้จ่าย</th>
+                                            <th class="text-right" data-sort="jan" onclick="handleSort('jan')">ม.ค. (บาท)</th>
+                                            <th class="text-right" data-sort="feb" onclick="handleSort('feb')">ก.พ. (บาท)</th>
+                                            <th class="text-right" data-sort="mar" onclick="handleSort('mar')">มี.ค. (บาท)</th>
+                                            <th class="text-right" data-sort="apr" onclick="handleSort('apr')">เม.ย. (บาท)</th>
+                                            <th class="text-right" data-sort="may" onclick="handleSort('may')">พ.ค. (บาท)</th>
+                                            <th class="text-right" data-sort="Total" onclick="handleSort('Total')">รวมสะสม (บาท)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advances section (Shown only if factory has advances) -->
+                    <div id="factoryAdvanceSection" style="display: none; margin-top: 2rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;"><i class="fas fa-hand-holding-dollar text-purple"></i> เงินยืมทดรองจ่าย (Cash Advances)</h2>
+                        <div class="borrower-summary-grid" id="borrowerGrid"></div>
+                        
+                        <div class="table-controls">
+                            <span class="text-bold"><i class="fas fa-list"></i> รายการเงินยืมทดรองจ่ายทั้งหมด</span>
+                        </div>
+                        <div class="table-card">
+                            <div class="table-wrapper">
+                                <table id="factoryAdvanceTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="width: 80px;">ลำดับ</th>
+                                            <th>งาน / กิจกรรม</th>
+                                            <th>ชื่อผู้ยืม</th>
+                                            <th class="text-right">ม.ค. (บาท)</th>
+                                            <th class="text-right">ก.พ. (บาท)</th>
+                                            <th class="text-right">มี.ค. (บาท)</th>
+                                            <th class="text-right">เม.ย. (บาท)</th>
+                                            <th class="text-right">พ.ค. (บาท)</th>
+                                            <th class="text-right">รวมยืม (บาท)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================== -->
+                <!-- TAB PANE: CONSOLIDATED ADVANCES -->
+                <!-- ============================================== -->
+                <div id="advancesPane" class="tab-pane" style="display: none;">
+                    <!-- KPI Cards -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card kpi-purple" style="grid-column: span 2;">
+                            <div class="kpi-icon"><i class="fas fa-hand-holding-dollar"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">เงินยืมทดรองจ่ายสะสมรวมทุกโรงงาน</span>
+                                <span class="kpi-value" id="advanceValA">-</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card kpi-blue" style="grid-column: span 2;">
+                            <div class="kpi-icon"><i class="fas fa-wallet"></i></div>
+                            <div class="kpi-details">
+                                <span class="kpi-title">ค่าใช้จ่ายรวม (ไม่รวมเงินยืม)</span>
+                                <span class="kpi-value" id="totalCostValA">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title"><i class="fas fa-chart-bar text-purple"></i> เงินยืมทดรองจ่ายรายโรงงาน</span>
+                            </div>
+                            <div class="chart-container" id="advancesChart1"></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title"><i class="fas fa-chart-area text-blue"></i> แนวโน้มการยืมรายเดือน</span>
+                            </div>
+                            <div class="chart-container" id="advancesChart2"></div>
+                        </div>
+                    </div>
+
+                    <h2 style="font-size: 1.25rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;"><i class="fas fa-users text-purple"></i> สรุปตามรายบุคคล (Borrowers)</h2>
+                    <div class="borrower-summary-grid" id="globalBorrowerGrid"></div>
+
+                    <!-- Detailed Advances Table -->
+                    <div>
+                        <div class="table-controls">
+                            <span class="text-bold"><i class="fas fa-list"></i> รายละเอียดการยืมเงินทดรองจ่ายสะสม</span>
+                            <button class="btn btn-primary" onclick="exportToCSV()">
+                                <i class="fas fa-file-csv"></i> ส่งออกเป็น CSV
+                            </button>
+                        </div>
+                        <div class="table-card">
+                            <div class="table-wrapper">
+                                <table id="advancesTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="width: 80px;">ลำดับ</th>
+                                            <th style="width: 120px;">โรงงาน</th>
+                                            <th>งาน / กิจกรรม</th>
+                                            <th>ชื่อผู้ยืม</th>
+                                            <th class="text-right">ม.ค. (บาท)</th>
+                                            <th class="text-right">ก.พ. (บาท)</th>
+                                            <th class="text-right">มี.ค. (บาท)</th>
+                                            <th class="text-right">เม.ย. (บาท)</th>
+                                            <th class="text-right">พ.ค. (บาท)</th>
+                                            <th class="text-right">รวมยืม (บาท)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- COMMON TASK MODAL (Create/Edit Card) -->
+    <!-- ============================================== -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title">รายละเอียดงาน</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            
+            <form id="formModal">
+                <input type="hidden" id="modalTaskId">
+                
+                <div class="form-group">
+                    <label for="modalTaskTitle">ชื่องาน *</label>
+                    <input type="text" id="modalTaskTitle" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="modalTaskDesc">รายละเอียด</label>
+                    <textarea id="modalTaskDesc" class="form-control" rows="4"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="modalTaskDeadline">วันที่ Deadline *</label>
+                    <input type="date" id="modalTaskDeadline" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalTaskAssignee">ผู้รับผิดชอบ *</label>
+                    <select id="modalTaskAssignee" class="form-control" required>
+                        <!-- Dynamic -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalTaskPriority">ความสำคัญ</label>
+                    <select id="modalTaskPriority" class="form-control">
+                        <option value="low">ปกติ (Low)</option>
+                        <option value="medium">ด่วน (Medium)</option>
+                        <option value="high">ด่วนที่สุด (High)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalTaskStatus">สถานะ</label>
+                    <select id="modalTaskStatus" class="form-control">
+                        <option value="todo">งานใหม่ (To Do)</option>
+                        <option value="in_progress">กำลังทำ (In Progress)</option>
+                        <option value="review">รอตรวจ (Review)</option>
+                        <option value="done">เสร็จแล้ว (Done)</option>
+                    </select>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="btnModalDelete" class="btn-secondary" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);">🗑️ ลบงานนี้</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">ยกเลิก</button>
+                    <button type="submit" class="btn-submit" style="width: auto; padding: 10px 24px;">บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data & Scripts -->
+    <script src="js/dashboard_data.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/expense_app.js"></script>
+</body>
+</html>
