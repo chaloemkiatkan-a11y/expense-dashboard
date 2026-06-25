@@ -858,4 +858,35 @@ tr:hover td {
   text-overflow: unset !important;
 }
 
+.sidebar {
+  width: 280px !important;
+  min-width: 280px !important;
+  position: fixed !important;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.main-content {
+  margin-left: 280px !important;
+  width: calc(100vw - 280px) !important;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 18px;
+  white-space: normal;
+}
+
+.logo-text {
+  font-size: 1.25rem !important;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+
 
