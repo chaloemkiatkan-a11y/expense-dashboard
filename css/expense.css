@@ -919,3 +919,45 @@ tr:hover td {
   margin-top: 18px !important;
 }
 
+/* Fix sidebar menu visibility */
+.sidebar {
+  width: 260px !important;
+  min-width: 260px !important;
+  max-width: 260px !important;
+  overflow-x: hidden !important;
+}
+
+.main-content {
+  margin-left: 260px !important;
+  width: calc(100vw - 260px) !important;
+}
+
+.sidebar-logo {
+  padding: 26px 20px 22px 20px !important;
+  min-height: auto !important;
+}
+
+.logo-text {
+  font-size: 0.95rem !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+}
+
+.sidebar-menu,
+.nav-menu,
+.sidebar nav {
+  display: block !important;
+  width: 100% !important;
+  margin-top: 22px !important;
+  padding: 0 16px !important;
+}
+
+.nav-item,
+.menu-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  white-space: normal !important;
+}
+
