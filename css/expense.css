@@ -255,9 +255,15 @@ input:checked + .slider:before {
 
 /* Header */
 .main-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  min-height: 110px;
+  padding: 28px 32px;
+  overflow: visible;
+}
+
+.header-title h1 {
+  line-height: 1.2;
+  margin: 0 0 8px 0;
+  padding-top: 4px;
 }
 
 .header-title h1 {
