@@ -429,9 +429,7 @@ input:checked + .slider:before {
 }
 
 .chart-container {
-    position: relative;
-    width: 100%;
-    min-height: 320px;
+  height: 480px;
 }
 
 /* Alert Boxes for MoM */
@@ -448,7 +446,7 @@ input:checked + .slider:before {
 .alert-box .alert-icon {
     color: #ef4444;
     font-size: 1.25rem;
-    margin-top: 0.1rem;
+    margin-top: 20px;
 }
 .alert-box .alert-content h4 {
     color: #ef4444;
@@ -487,7 +485,9 @@ input:checked + .slider:before {
     position: absolute;
     left: 1.1rem;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-4px);
+box-shadow: 0 15px 35px rgba(0,0,0,.25);
+transition: .25s;
     color: var(--text-secondary);
     font-size: 0.95rem;
 }
@@ -777,3 +777,36 @@ tr:hover td {
 .tab-pane.active {
     display: flex;
 }
+
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kpi-card {
+  animation: fadeInUp 0.5s ease both;
+}
+
+.kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.kpi-card:nth-child(2) { animation-delay: 0.10s; }
+.kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.kpi-card:nth-child(4) { animation-delay: 0.20s; }
+.kpi-card:nth-child(5) { animation-delay: 0.25s; }
+.kpi-card:nth-child(6) { animation-delay: 0.30s; }
+
+
+.sidebar {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+
+
+
