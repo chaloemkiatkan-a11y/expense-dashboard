@@ -807,6 +807,27 @@ tr:hover td {
 }
 
 
+.kpi-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
 
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.kpi-grid {
+  margin-top: 10px;
+}
+
+@media (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 
