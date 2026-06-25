@@ -888,5 +888,34 @@ tr:hover td {
   line-height: 1.15;
 }
 
+.sidebar {
+  width: 300px !important;
+  min-width: 300px !important;
+}
 
+.main-content {
+  margin-left: 300px !important;
+  width: calc(100vw - 300px) !important;
+}
+
+.sidebar-logo {
+  padding: 28px 22px 18px 22px !important;
+  min-height: 110px;
+}
+
+.logo-text {
+  font-size: 1.15rem !important;
+  line-height: 1.15 !important;
+}
+
+.sidebar nav,
+.sidebar-menu,
+.nav-menu {
+  margin-top: 12px !important;
+}
+
+.nav-section,
+.menu-section {
+  margin-top: 18px !important;
+}
 
