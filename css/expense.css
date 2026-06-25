@@ -830,4 +830,32 @@ tr:hover td {
   }
 }
 
+/* Expand ApexCharts tooltip width */
+.apexcharts-tooltip {
+  min-width: 520px !important;
+  max-width: 720px !important;
+  white-space: normal !important;
+  padding: 12px 14px !important;
+}
+
+.apexcharts-tooltip-series-group {
+  white-space: normal !important;
+  align-items: flex-start !important;
+}
+
+.apexcharts-tooltip-text,
+.apexcharts-tooltip-y-group,
+.apexcharts-tooltip-title {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow: visible !important;
+}
+
+.apexcharts-tooltip-text-y-label,
+.apexcharts-tooltip-text-y-value {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
 
